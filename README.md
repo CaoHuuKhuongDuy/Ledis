@@ -3,7 +3,7 @@
 ## Overview
 
 Ledis is a simplified, lightweight version of Redis, designed to handle basic data structures such as Strings and Sets, along with special features like data expiration and snapshots. It also includes a simple web CLI for interacting with the data store.
-The demo here: https://ledis.onrender.com
+You can run the demo here: https://ledis.onrender.com (Note: The instance will spin down with inactivity, please wait for it to be active again)
 
 ## Architecture
 
@@ -131,20 +131,29 @@ The `garbageCollector` struct is responsible for cleaning up expired keys from t
 
 ### Challenges and Interesting Points
 
-#### Challenges
+#### Garbage collection mechanism
 
-1. **Thread Safety**: Ensuring thread safety was a key challenge, especially with concurrent access and modifications to the data store. This was addressed using mutexes (`sync.RWMutex`) to protect shared resources.
-2. **Garbage Collection**: Implementing an efficient garbage collector that periodically removes expired keys without impacting performance was challenging. The use of an LLRB tree helped in maintaining a sorted order of keys based on their expiration times.
-3. **Snapshot Functionality**: Creating deep copies of the entire Ledis instance for snapshots required careful handling of pointers and data structures to ensure that the snapshots were independent of the current state.
+We have 2 mechanisms to clean up expired keys:
 
-#### Interesting Points
+##### 1. Lazy Removal
 
-1. **LLRB Tree for Garbage Collection**: The use of an LLRB tree for managing keys based on their expiration times was an interesting design choice. It ensured that the garbage collector could efficiently find and remove expired keys.
-2. **Modular Design**: The modular design of Ledis made it easy to extend and maintain. Each component (data structures, key management, garbage collector, snapshots) was implemented as a separate module with well-defined interfaces.
-3. **Error Handling**: Providing clear and informative error messages helped in debugging and understanding issues. This was an important aspect of the user experience.
+We will check if a key is expired when we try to access it. If it is, we remove it.
 
-## Conclusion
+##### 2. Garbage Collector
 
-The design and implementation of Ledis focused on creating a lightweight, efficient, and thread-safe in-memory data store with basic data structures and features. The `Ledis` struct handles data management, the `Key` struct manages key metadata, and the `garbageCollector` struct ensures effective cleaning of expired keys. The use of mutexes ensured thread safety, while efficient data structures like maps and LLRB trees provided fast access and management. The garbage collector and lazy removal mechanisms ensured effective data management by automatically and promptly removing expired keys. These design choices helped achieve the objectives of the project and provided a robust foundation for future extensions.
+How about the keys that are not accessed frequently? It will never be removed by the lazy removal mechanism. The idea is using a background goroutine to periodically check for expired keys and remove them every 15 seconds. But we will need to iterate through all the keys in the garbage collector, which has the time complexity of O(N) with N is the number of keys in Ledis and it will not efficient for a large number of keys??!!
 
-**Warning:** Do not expose confidential and sensitive data.
+Improvement: we will use a red-black tree to store the keys in order of their expiration times, so we can iterate through the keys that have the expiration time less than the current time to delete them and won't need to iterate through the keys that haven't expired yet. So the time complexity will be O(K) with K is the number of keys that have expired. 
+
+P/s: We also can use another data structure like priority queue (heap) to store the keys in order as well.
+
+#### Get the set intersection algorithm
+
+The basic idea is using a hash map to store the frequency of each element in the first set and then iterate through the elements of the others sets and increment the frequency of each element in the hash map. If the frequency of an element is equal to the number of sets, we add it to the result set. So the time complexity will be O(N) with N is the total number of elements in all sets.
+
+In the worst case this algorithm is effective but what if we have 99 sets with 10^6 elements and 1 set with 1 element. We will need to iterate through 10^6 * 99 + 1 to find the result. We can make a small improvement for the average complexity by:
+
+1. Store the elements of the set has the least number of elements in a hash map.
+2. Interate through the others sets and check if the element in the hash map exists in the set, if it does not, we remove it from the hash map. The final hash map will only contain the elements that exist in all sets.
+
+This algorithm will have the time complexity of O(K * M) with K is the smallest number of elements in all sets and M is the number of sets. In the worst case, this complexity is equivalent O(N) in the basic idea but in the average case, it will be much faster (eg with the case above, it will be O(10^6 * 1) = O(10^6)).
