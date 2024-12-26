@@ -163,12 +163,12 @@ P/s: We also can use another data structure like priority queue (heap) to store 
 
 The basic idea is using a hash map to store the frequency of each element in the first set and then iterate through the elements of the others sets and increment the frequency of each element in the hash map. If the frequency of an element is equal to the number of sets, we add it to the result set. So the time complexity will be O(N) with N is the total number of elements in all sets.
 
-In the worst case this algorithm is effective but what if we have 99 sets with 10^6 elements and 1 set with 1 element. We will need to iterate through 10^6 * 99 + 1 to find the result. We can make a small improvement for the average complexity by:
+In the worst case this algorithm is effective but what if we have 99 sets with $10^6$ elements and 1 set with 1 element. We will need to iterate through $10^6$ * 99 + 1 to find the result. We can make a small improvement for the average complexity by:
 
 1. Store the elements of the set has the least number of elements in a hash map.
 2. Interate through the others sets and check if the element in the hash map exists in the set, if it does not, we remove it from the hash map. The final hash map will only contain the elements that exist in all sets.
 
-This algorithm will have the time complexity of O(K * M) with K is the smallest number of elements in all sets and M is the number of sets. In the worst case, this complexity is equivalent O(N) in the basic idea but in the average case, it will be much faster (eg with the case above, it will be O(10^6 * 1) = O(10^6)).
+This algorithm will have the time complexity of O(K * M) with K is the smallest number of elements in all sets and M is the number of sets. In the worst case, this complexity is equivalent O(N) in the basic idea but in the average case, it will be much faster (eg with the case above, it will be O($10^6$ * 1) = O($10^6$)).
 
 #### Snapshot and restore
 
