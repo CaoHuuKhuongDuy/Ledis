@@ -94,7 +94,7 @@ func (gc *garbageCollector) clone(ledis *Ledis) *garbageCollector {
 		cancel: cancel,
 	}
 	gc.tree.AscendGreaterOrEqual(&item{}, func(i llrb.Item) bool {
-		newGC.add(i.(*item).key)
+		newGC.add(i.(*item).key.clone())
 		return true
 	})
 	go newGC.clean(ctx)

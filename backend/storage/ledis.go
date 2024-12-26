@@ -35,6 +35,15 @@ func (k *Key) isExpired() bool {
 	return k.expireTime != 0 && k.getExpireTime().Before(time.Now())
 }
 
+func (k *Key) clone() *Key {
+	return &Key{
+		name:        k.name,
+		_type:       k._type,
+		lastRenewed: k.lastRenewed,
+		expireTime:  k.expireTime,
+	}
+}
+
 func newKey(key string, keyType KeyType, expireTime time.Duration) *Key {
 	return &Key{
 		name:        key,
@@ -402,8 +411,7 @@ func (l *Ledis) copy(other *Ledis) error {
 	l.keys = make(map[string]*Key)
 	for key, keyStruct := range other.keys {
 		if keyStruct != nil {
-			newKey := *keyStruct
-			l.keys[key] = &newKey
+			l.keys[key] = keyStruct.clone()
 		} else {
 			l.keys[key] = nil
 		}
