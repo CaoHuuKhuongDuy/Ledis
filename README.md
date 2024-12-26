@@ -157,3 +157,7 @@ In the worst case this algorithm is effective but what if we have 99 sets with 1
 2. Interate through the others sets and check if the element in the hash map exists in the set, if it does not, we remove it from the hash map. The final hash map will only contain the elements that exist in all sets.
 
 This algorithm will have the time complexity of O(K * M) with K is the smallest number of elements in all sets and M is the number of sets. In the worst case, this complexity is equivalent O(N) in the basic idea but in the average case, it will be much faster (eg with the case above, it will be O(10^6 * 1) = O(10^6)).
+
+#### Snapshot and restore
+
+The technique is using a pointer to the same Ledis instance to store the snapshot. So when we restore the snapshot, we will restore the Ledis instance to the snapshot. It will be a deep copy of the Ledis instance. This is the simple way but we need to be careful with the memory management to avoid memory leak and data inconsistency.
