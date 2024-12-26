@@ -61,6 +61,8 @@ The garbage collector is responsible for removing expired keys from the database
 
 Ledis supports saving the current state of the database and restoring it from a snapshot. This is useful for backup and recovery purposes. The `save` method creates a deep copy of the current Ledis instance and stores it in the `snapshots` field. The `restore` method restores the state from the last saved snapshot.
 
+**Note**: When saving a snapshot, Ledis captures the current state of keys, including their expiration metadata (last accessed time and expiration time). During the restore process, keys that would have expired based on the time elapsed since the snapshot are not restored, ensuring consistent expiration behavior. This design prevents restoring keys that are already expired, maintaining integrity in time-sensitive operations.
+
 ### Web CLI
 
 A simple web CLI is provided to interact with Ledis. Commands are parsed and validated using utility functions, and the appropriate methods are called to handle each command. The supported commands include:
