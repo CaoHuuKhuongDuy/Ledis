@@ -5,6 +5,18 @@
 Ledis is a simplified, lightweight version of Redis, designed to handle basic data structures such as Strings and Sets, along with special features like data expiration and snapshots. It also includes a simple web CLI for interacting with the data store.
 You can run the demo here: https://ledis.onrender.com (Note: The instance will spin down with inactivity, please wait a bit for it to be active again)
 
+## Run the project locally
+
+In case the demo is not available, you can run the project locally by following these steps:
+
+1. Navigate to the root of the project.
+2. Execute the following command:
+
+   ```bash
+   cd backend && go build . && cd .. && ./backend/ledis
+3. Access the web interface at http://localhost:8080
+
+
 ## Architecture
 
 The architecture of Ledis is designed to be thread-safe and efficient, utilizing Go's concurrency primitives and data structures. The main components of the architecture are:
