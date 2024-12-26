@@ -22,16 +22,18 @@ func NewServer() *Server {
 // ServeHTTP is the method on the Server struct that will handle incoming requests
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check the URL path and handle accordingly
+	fmt.Println("Received request:", r.URL.Path)
 	switch {
 	case r.URL.Path == "/":
 		// Serve the main HTML page
-		http.ServeFile(w, r, "../frontend/views/index.html")
+		fmt.Println("Serving main page")
+		http.ServeFile(w, r, "frontend/views/index.html")
 	case r.URL.Path == "/execute":
 		// Handle execute command logic
 		s.handleExecute(w, r)
 	case strings.HasPrefix(r.URL.Path, "/static/"):
 		// Serve static files from the frontend directory
-		staticPath := "../frontend" + r.URL.Path
+		staticPath := "frontend" + r.URL.Path
 		fmt.Println("Serving static file:", staticPath)
 		http.ServeFile(w, r, staticPath)
 	default:
