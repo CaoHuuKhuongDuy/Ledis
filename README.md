@@ -157,7 +157,7 @@ We will check if a key is expired when we try to access it. If it is, we remove 
 
 How about the keys that are not accessed frequently? It will never be removed by the lazy removal mechanism. The idea is using a background goroutine to periodically check for expired keys and remove them every 15 seconds. But we will need to iterate through all the keys in the garbage collector, which has the time complexity of O(N) with N is the number of keys in Ledis and it will not efficient for a large number of keys??!!
 
-Improvement: we will use a red-black tree to store the keys in order of their expiration times, so we can iterate through the keys that have the expiration time less than the current time to delete them and won't need to iterate through the keys that haven't expired yet. So the time complexity will be O(K) with K is the number of keys that have expired. 
+Improvement: we will use a red-black tree to store the keys in order of their expiration times, so we can iterate through the keys that have the expiration time less than the current time to delete them and won't need to iterate through the keys that haven't expired yet. So the time complexity will be O(K * log2(N)) with K is the number of keys that have expired and N is the total number of keys. 
 
 P/s: We also can use another data structure like priority queue (heap) to store the keys in order as well.
 
