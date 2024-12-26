@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cleanInterval = 1 * time.Second
+	cleanInterval = 15 * time.Second
 )
 
 type item struct {

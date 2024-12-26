@@ -174,7 +174,7 @@ func (l *Ledis) set(key *Key, value string) error {
 	l.atomicData[key.name] = &value
 	if key == nil || key._type != KeyTypeString {
 		l.mu.Unlock()
-		return errors.New("key is not valid")
+		return errors.New("key is not valid, this key may be a set key and does not support SET command")
 	}
 	l.mu.Unlock()
 
@@ -187,7 +187,7 @@ func (l *Ledis) get(key *Key) (string, error) {
 	defer l.mu.RUnlock()
 
 	if key == nil || key._type != KeyTypeString {
-		return "", errors.New("key is not valid")
+		return "", errors.New("key is not valid, this key may be a set key and does not support GET command")
 	}
 
 	return *l.atomicData[key.name], nil
@@ -198,7 +198,7 @@ func (l *Ledis) sadd(key *Key, values ...string) error {
 	defer l.mu.Unlock()
 
 	if key == nil || key._type != KeyTypeSet {
-		return errors.New("key is not valid")
+		return errors.New("key is not valid, this key may be a string key and does not support SADD command")
 	}
 
 	for _, value := range values {
@@ -215,7 +215,7 @@ func (l *Ledis) srem(key *Key, values ...string) error {
 	defer l.mu.Unlock()
 
 	if key == nil || key._type != KeyTypeSet {
-		return errors.New("key is not valid")
+		return errors.New("key is not valid, this key may be a string key and does not support SREM command")
 	}
 
 	for _, value := range values {
@@ -231,7 +231,7 @@ func (l *Ledis) smembers(key *Key) ([]string, error) {
 	defer l.mu.RUnlock()
 
 	if key == nil || key._type != KeyTypeSet {
-		return nil, errors.New("key is not valid")
+		return nil, errors.New("key is not valid, this key may be a string key and does not support SMEMBERS command")
 	}
 
 	return setDataToStrings(l.setData[key.name]), nil
@@ -246,7 +246,7 @@ func (l *Ledis) sinter(keys ...*Key) ([]string, error) {
 	}
 	for _, key := range keys {
 		if key == nil || key._type != KeyTypeSet {
-			return nil, errors.New("key is not valid")
+			return nil, errors.New("key is not valid, this key may be a string key and does not support SINTER command")
 		}
 	}
 
