@@ -27,9 +27,12 @@ func (k *Key) renew() {
 	k.lastRenewed = time.Now()
 }
 
-func (k *Key) isExpired() bool {
-	return k.expireTime != 0 && time.Since(k.lastRenewed) > k.expireTime
+func (k *Key) getExpireTime() time.Time {
+	return k.lastRenewed.Add(k.expireTime)
+}
 
+func (k *Key) isExpired() bool {
+	return k.expireTime != 0 && k.getExpireTime().Before(time.Now())
 }
 
 func newKey(key string, keyType KeyType, expireTime time.Duration) *Key {
@@ -47,14 +50,17 @@ type Ledis struct {
 	keys       map[string]*Key
 	mu         sync.RWMutex
 	snapshots  *Ledis
+	gc         *garbageCollector
 }
 
 func NewLedis() *Ledis {
-	return &Ledis{
+	l := &Ledis{
 		atomicData: make(map[string]*string),
 		setData:    make(map[string]*map[string]bool),
 		keys:       make(map[string]*Key),
 	}
+	l.gc = newGarbageCollector(l)
+	return l
 }
 
 func (l *Ledis) HandleCommand(cmd string) ([]string, error) {
@@ -157,20 +163,22 @@ func (l *Ledis) deleteKey(key *Key) error {
 	} else {
 		delete(l.setData, key.name)
 	}
+	l.gc.remove(key)
 	delete(l.keys, key.name)
 	return nil
 }
 
 func (l *Ledis) set(key *Key, value string) error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
 
+	l.mu.Lock()
+	l.atomicData[key.name] = &value
 	if key == nil || key._type != KeyTypeString {
+		l.mu.Unlock()
 		return errors.New("key is not valid")
 	}
+	l.mu.Unlock()
 
-	l.atomicData[key.name] = &value
-	key.renew()
+	l.renewKey(key)
 	return nil
 }
 
@@ -302,14 +310,13 @@ func (l *Ledis) listKeys() []string {
 
 func (l *Ledis) setExpireKey(key *Key, expireTime time.Duration) error {
 	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	if key == nil {
+		l.mu.Unlock()
 		return errors.New("key not found")
 	}
-
 	key.expireTime = expireTime
-	key.renew()
+	l.mu.Unlock()
+	l.renewKey(key)
 	return nil
 }
 
@@ -401,6 +408,14 @@ func (l *Ledis) copy(other *Ledis) error {
 			l.keys[key] = nil
 		}
 	}
+
+	// Deep copy garbage collector
+	if l.gc != nil {
+		// Stop the current garbage collector
+		l.gc.stop()
+	}
+	l.gc = other.gc.clone(l)
+
 	return nil
 }
 
@@ -421,4 +436,17 @@ func (l *Ledis) convertKeys(keys ...string) ([]*Key, error) {
 		keyEntries = append(keyEntries, keyEntry)
 	}
 	return keyEntries, nil
+}
+
+func (l *Ledis) renewKey(key *Key) {
+	if key == nil {
+		return
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.gc.remove(key)
+	key.renew()
+	if key.expireTime != 0 {
+		l.gc.add(key)
+	}
 }
