@@ -3,7 +3,7 @@
 ## Overview
 
 Ledis is a simplified, lightweight version of Redis, designed to handle basic data structures such as Strings and Sets, along with special features like data expiration and snapshots. It also includes a simple web CLI for interacting with the data store.
-You can run the demo here: https://ledis.onrender.com (Note: The instance will spin down with inactivity, please wait for it to be active again)
+You can run the demo here: https://ledis.onrender.com (Note: The instance will spin down with inactivity, please wait a bit for it to be active again)
 
 ## Architecture
 
