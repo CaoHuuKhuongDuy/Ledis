@@ -161,7 +161,7 @@ Improvement: we will use a red-black tree to store the keys in order of their ex
 
 P/s: We also can use another data structure like priority queue (heap) to store the keys in order as well.
 
-#### Get the set intersection algorithm
+#### Optimizing Set Intersection Algorithm
 
 The basic idea is using a hash map to store the frequency of each element in the first set and then iterate through the elements of the others sets and increment the frequency of each element in the hash map. If the frequency of an element is equal to the number of sets, we add it to the result set. So the time complexity will be O(N) with N is the total number of elements in all sets.
 
