@@ -289,10 +289,14 @@ func (l *Ledis) sinter(keys ...*Key) ([]string, error) {
 		if key._type == KeyTypeString || index == idOfSetHasMinSize {
 			continue
 		}
+		toDelete := make([]string, 0)
 		for value := range candidatesIntersection {
 			if _, ok := (*l.setData[key.name])[value]; !ok {
-				delete(candidatesIntersection, value)
+				toDelete = append(toDelete, value)
 			}
+		}
+		for _, value := range toDelete {
+			delete(candidatesIntersection, value)
 		}
 	}
 
